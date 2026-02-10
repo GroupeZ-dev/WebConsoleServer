@@ -5,3 +5,4 @@ description: Console for your server
 website: https://groupez.dev/server
 version: ${version}
 api-version: 1.21
+load: STARTUP

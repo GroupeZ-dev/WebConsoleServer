@@ -1,4 +1,13 @@
 # WebConsoleServer Configuration
 
+# IP address to bind the WebSocket server (use 0.0.0.0 for all interfaces)
+websocket-host: "0.0.0.0"
+
 # Port for the WebSocket server
 websocket-port: 8765
+
+# Password for WebSocket authentication (leave empty for no authentication)
+websocket-password: "changeme"
+
+# Maximum number of log lines to keep in history
+max-log-history: 1000

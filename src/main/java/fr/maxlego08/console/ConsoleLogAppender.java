@@ -22,7 +22,7 @@ public class ConsoleLogAppender extends AbstractAppender {
 
     @Override
     public void append(LogEvent event) {
-        if (this.webSocketServer == null || this.webSocketServer.getConnections().isEmpty()) {
+        if (this.webSocketServer == null) {
             return;
         }
 
@@ -33,6 +33,6 @@ public class ConsoleLogAppender extends AbstractAppender {
 
         String formattedMessage = String.format("[%s] [%s] [%s]: %s", time, level, loggerName, message);
 
-        this.webSocketServer.broadcastMessage(formattedMessage);
+        this.webSocketServer.broadcastLog(formattedMessage);
     }
 }
