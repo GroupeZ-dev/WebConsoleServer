@@ -29,9 +29,6 @@ public class MinecraftWebSocketServer extends WebSocketServer {
 
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
-        String address = webSocket.getRemoteSocketAddress().toString();
-        // this.logger.info("WebSocket client connected: " + address);
-
         if (this.password == null || this.password.isEmpty()) {
             authenticateClient(webSocket);
         } else {
@@ -41,9 +38,7 @@ public class MinecraftWebSocketServer extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket webSocket, int code, String reason, boolean remote) {
-        String address = webSocket.getRemoteSocketAddress().toString();
         this.authenticatedClients.remove(webSocket);
-        // this.logger.info("WebSocket client disconnected: " + address);
     }
 
     @Override
@@ -87,7 +82,7 @@ public class MinecraftWebSocketServer extends WebSocketServer {
         synchronized (this.logHistory) {
             this.logHistory.add(message);
             while (this.logHistory.size() > this.maxLogHistory) {
-                this.logHistory.remove(0);
+                this.logHistory.removeFirst();
             }
         }
 
@@ -113,7 +108,6 @@ public class MinecraftWebSocketServer extends WebSocketServer {
                 case '\f' -> sb.append("\\f");
                 default -> {
                     if (c < 0x20) {
-                        // Escape control characters (including ANSI escape \x1b)
                         sb.append(String.format("\\u%04x", (int) c));
                     } else {
                         sb.append(c);

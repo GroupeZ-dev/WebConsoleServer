@@ -8,7 +8,7 @@ public class WebServerPlugin extends JavaPlugin {
 
     private static final String DEFAULT_HOST = "0.0.0.0";
     private static final int DEFAULT_PORT = 8765;
-    private static final int DEFAULT_MAX_HISTORY = 1000;
+    private static final int DEFAULT_MAX_HISTORY = 500;
 
     private MinecraftWebSocketServer webSocketServer;
     private ConsoleLogAppender consoleLogAppender;
