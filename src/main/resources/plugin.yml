@@ -1,0 +1,7 @@
+name: WebConsoleServer
+authors: [ Maxlego08 ]
+main: fr.maxlego08.console.WebServerPlugin
+description: Console for your server
+website: https://groupez.dev/server
+version: ${version}
+api-version: 1.21
