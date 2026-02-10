@@ -322,6 +322,8 @@
     const portInput = document.getElementById('port');
     const passwordInput = document.getElementById('password');
 
+    const MAX_LOG_LINES = 500;
+
     let ws = null;
     let isAuthenticated = false;
     let receivingHistory = false;
@@ -381,6 +383,12 @@
         }
 
         consoleEl.appendChild(entry);
+
+        // Remove old entries to prevent browser lag
+        while (consoleEl.childElementCount > MAX_LOG_LINES) {
+            consoleEl.removeChild(consoleEl.firstChild);
+        }
+
         consoleEl.scrollTop = consoleEl.scrollHeight;
     }
 

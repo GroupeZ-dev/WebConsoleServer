@@ -10,4 +10,4 @@ websocket-port: 8765
 websocket-password: "changeme"
 
 # Maximum number of log lines to keep in history
-max-log-history: 1000
+max-log-history: 500
