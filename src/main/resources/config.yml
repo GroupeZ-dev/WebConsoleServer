@@ -1,0 +1,4 @@
+# WebConsoleServer Configuration
+
+# Port for the WebSocket server
+websocket-port: 8765

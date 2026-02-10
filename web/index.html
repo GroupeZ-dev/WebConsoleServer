@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebConsole - Minecraft Server</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: #1a1a2e;
+            color: #eee;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: #16213e;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #0f3460;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            font-weight: normal;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e94560;
+        }
+
+        .status-dot.connected {
+            background: #4ecca3;
+        }
+
+        .controls {
+            padding: 10px 20px;
+            background: #16213e;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input {
+            background: #1a1a2e;
+            border: 1px solid #0f3460;
+            color: #eee;
+            padding: 8px 12px;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        button {
+            background: #0f3460;
+            color: #eee;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #e94560;
+        }
+
+        button.clear {
+            margin-left: auto;
+        }
+
+        #console {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 20px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .log-entry {
+            padding: 2px 0;
+            border-bottom: 1px solid #16213e;
+        }
+
+        .log-entry:hover {
+            background: #16213e;
+        }
+
+        .log-time {
+            color: #888;
+        }
+
+        .log-level {
+            font-weight: bold;
+            margin: 0 5px;
+        }
+
+        .log-level.INFO { color: #4ecca3; }
+        .log-level.WARN { color: #f9ed69; }
+        .log-level.ERROR { color: #e94560; }
+        .log-level.DEBUG { color: #a29bfe; }
+
+        .log-logger {
+            color: #74b9ff;
+        }
+
+        .log-message {
+            color: #ddd;
+        }
+
+        .system-message {
+            color: #888;
+            font-style: italic;
+            padding: 5px 0;
+        }
+
+        /* Minecraft colors */
+        .mc-0 { color: #000000; }
+        .mc-1 { color: #0000AA; }
+        .mc-2 { color: #00AA00; }
+        .mc-3 { color: #00AAAA; }
+        .mc-4 { color: #AA0000; }
+        .mc-5 { color: #AA00AA; }
+        .mc-6 { color: #FFAA00; }
+        .mc-7 { color: #AAAAAA; }
+        .mc-8 { color: #555555; }
+        .mc-9 { color: #5555FF; }
+        .mc-a { color: #55FF55; }
+        .mc-b { color: #55FFFF; }
+        .mc-c { color: #FF5555; }
+        .mc-d { color: #FF55FF; }
+        .mc-e { color: #FFFF55; }
+        .mc-f { color: #FFFFFF; }
+        .mc-bold { font-weight: bold; }
+        .mc-italic { font-style: italic; }
+        .mc-underline { text-decoration: underline; }
+        .mc-strike { text-decoration: line-through; }
+
+        /* ANSI colors */
+        .ansi-black { color: #000000; }
+        .ansi-red { color: #AA0000; }
+        .ansi-green { color: #00AA00; }
+        .ansi-yellow { color: #FFAA00; }
+        .ansi-blue { color: #0000AA; }
+        .ansi-magenta { color: #AA00AA; }
+        .ansi-cyan { color: #00AAAA; }
+        .ansi-white { color: #AAAAAA; }
+        .ansi-bright-black { color: #555555; }
+        .ansi-bright-red { color: #FF5555; }
+        .ansi-bright-green { color: #55FF55; }
+        .ansi-bright-yellow { color: #FFFF55; }
+        .ansi-bright-blue { color: #5555FF; }
+        .ansi-bright-magenta { color: #FF55FF; }
+        .ansi-bright-cyan { color: #55FFFF; }
+        .ansi-bright-white { color: #FFFFFF; }
+        .ansi-bold { font-weight: bold; }
+        .ansi-italic { font-style: italic; }
+        .ansi-underline { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>WebConsole - Minecraft Server</h1>
+        <div class="status">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Disconnected</span>
+        </div>
+    </header>
+
+    <div class="controls">
+        <input type="text" id="host" placeholder="Host" value="localhost">
+        <input type="text" id="port" placeholder="Port" value="8765">
+        <button id="connectBtn">Connect</button>
+        <button class="clear" id="clearBtn">Clear</button>
+    </div>
+
+    <div id="console"></div>
+
+    <script>
+        const consoleEl = document.getElementById('console');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const connectBtn = document.getElementById('connectBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const hostInput = document.getElementById('host');
+        const portInput = document.getElementById('port');
+
+        let ws = null;
+
+        function log(message, isSystem = false) {
+            const entry = document.createElement('div');
+
+            if (isSystem) {
+                entry.className = 'system-message';
+                entry.textContent = message;
+            } else {
+                entry.className = 'log-entry';
+
+                const match = message.match(/^\[(\d{2}:\d{2}:\d{2})\] \[(\w+)\] \[([^\]]+)\]: (.*)$/);
+
+                if (match) {
+                    const [, time, level, logger, msg] = match;
+                    entry.innerHTML = `<span class="log-time">[${time}]</span>` +
+                        `<span class="log-level ${level}">[${level}]</span>` +
+                        `<span class="log-logger">[${parseMinecraftColors(logger)}]</span>: ` +
+                        `<span class="log-message">${parseMinecraftColors(msg)}</span>`;
+                } else {
+                    entry.innerHTML = `<span class="log-message">${parseMinecraftColors(message)}</span>`;
+                }
+            }
+
+            consoleEl.appendChild(entry);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        const ANSI_COLORS = {
+            30: 'ansi-black', 31: 'ansi-red', 32: 'ansi-green', 33: 'ansi-yellow',
+            34: 'ansi-blue', 35: 'ansi-magenta', 36: 'ansi-cyan', 37: 'ansi-white',
+            90: 'ansi-bright-black', 91: 'ansi-bright-red', 92: 'ansi-bright-green', 93: 'ansi-bright-yellow',
+            94: 'ansi-bright-blue', 95: 'ansi-bright-magenta', 96: 'ansi-bright-cyan', 97: 'ansi-bright-white'
+        };
+
+        const ANSI_256 = [
+            '#000000', '#800000', '#008000', '#808000', '#000080', '#800080', '#008080', '#c0c0c0',
+            '#808080', '#ff0000', '#00ff00', '#ffff00', '#0000ff', '#ff00ff', '#00ffff', '#ffffff',
+            '#000000', '#00005f', '#000087', '#0000af', '#0000d7', '#0000ff', '#005f00', '#005f5f',
+            '#005f87', '#005faf', '#005fd7', '#005fff', '#008700', '#00875f', '#008787', '#0087af',
+            '#0087d7', '#0087ff', '#00af00', '#00af5f', '#00af87', '#00afaf', '#00afd7', '#00afff',
+            '#00d700', '#00d75f', '#00d787', '#00d7af', '#00d7d7', '#00d7ff', '#00ff00', '#00ff5f',
+            '#00ff87', '#00ffaf', '#00ffd7', '#00ffff', '#5f0000', '#5f005f', '#5f0087', '#5f00af',
+            '#5f00d7', '#5f00ff', '#5f5f00', '#5f5f5f', '#5f5f87', '#5f5faf', '#5f5fd7', '#5f5fff',
+            '#5f8700', '#5f875f', '#5f8787', '#5f87af', '#5f87d7', '#5f87ff', '#5faf00', '#5faf5f',
+            '#5faf87', '#5fafaf', '#5fafd7', '#5fafff', '#5fd700', '#5fd75f', '#5fd787', '#5fd7af',
+            '#5fd7d7', '#5fd7ff', '#5fff00', '#5fff5f', '#5fff87', '#5fffaf', '#5fffd7', '#5fffff',
+            '#870000', '#87005f', '#870087', '#8700af', '#8700d7', '#8700ff', '#875f00', '#875f5f',
+            '#875f87', '#875faf', '#875fd7', '#875fff', '#878700', '#87875f', '#878787', '#8787af',
+            '#8787d7', '#8787ff', '#87af00', '#87af5f', '#87af87', '#87afaf', '#87afd7', '#87afff',
+            '#87d700', '#87d75f', '#87d787', '#87d7af', '#87d7d7', '#87d7ff', '#87ff00', '#87ff5f',
+            '#87ff87', '#87ffaf', '#87ffd7', '#87ffff', '#af0000', '#af005f', '#af0087', '#af00af',
+            '#af00d7', '#af00ff', '#af5f00', '#af5f5f', '#af5f87', '#af5faf', '#af5fd7', '#af5fff',
+            '#af8700', '#af875f', '#af8787', '#af87af', '#af87d7', '#af87ff', '#afaf00', '#afaf5f',
+            '#afaf87', '#afafaf', '#afafd7', '#afafff', '#afd700', '#afd75f', '#afd787', '#afd7af',
+            '#afd7d7', '#afd7ff', '#afff00', '#afff5f', '#afff87', '#afffaf', '#afffd7', '#afffff',
+            '#d70000', '#d7005f', '#d70087', '#d700af', '#d700d7', '#d700ff', '#d75f00', '#d75f5f',
+            '#d75f87', '#d75faf', '#d75fd7', '#d75fff', '#d78700', '#d7875f', '#d78787', '#d787af',
+            '#d787d7', '#d787ff', '#d7af00', '#d7af5f', '#d7af87', '#d7afaf', '#d7afd7', '#d7afff',
+            '#d7d700', '#d7d75f', '#d7d787', '#d7d7af', '#d7d7d7', '#d7d7ff', '#d7ff00', '#d7ff5f',
+            '#d7ff87', '#d7ffaf', '#d7ffd7', '#d7ffff', '#ff0000', '#ff005f', '#ff0087', '#ff00af',
+            '#ff00d7', '#ff00ff', '#ff5f00', '#ff5f5f', '#ff5f87', '#ff5faf', '#ff5fd7', '#ff5fff',
+            '#ff8700', '#ff875f', '#ff8787', '#ff87af', '#ff87d7', '#ff87ff', '#ffaf00', '#ffaf5f',
+            '#ffaf87', '#ffafaf', '#ffafd7', '#ffafff', '#ffd700', '#ffd75f', '#ffd787', '#ffd7af',
+            '#ffd7d7', '#ffd7ff', '#ffff00', '#ffff5f', '#ffff87', '#ffffaf', '#ffffd7', '#ffffff',
+            '#080808', '#121212', '#1c1c1c', '#262626', '#303030', '#3a3a3a', '#444444', '#4e4e4e',
+            '#585858', '#626262', '#6c6c6c', '#767676', '#808080', '#8a8a8a', '#949494', '#9e9e9e',
+            '#a8a8a8', '#b2b2b2', '#bcbcbc', '#c6c6c6', '#d0d0d0', '#dadada', '#e4e4e4', '#eeeeee'
+        ];
+
+        function parseAnsiCodes(text) {
+            let result = '';
+            let openTags = 0;
+            const regex = /\x1b\[([\d;]*)m/g;
+            let lastIndex = 0;
+            let match;
+
+            while ((match = regex.exec(text)) !== null) {
+                result += escapeHtml(text.substring(lastIndex, match.index));
+                lastIndex = regex.lastIndex;
+
+                const codes = match[1].split(';').map(c => parseInt(c) || 0);
+
+                for (let i = 0; i < codes.length; i++) {
+                    const code = codes[i];
+
+                    if (code === 0) {
+                        while (openTags > 0) { result += '</span>'; openTags--; }
+                    } else if (code === 1) {
+                        result += '<span class="ansi-bold">';
+                        openTags++;
+                    } else if (code === 3) {
+                        result += '<span class="ansi-italic">';
+                        openTags++;
+                    } else if (code === 4) {
+                        result += '<span class="ansi-underline">';
+                        openTags++;
+                    } else if (ANSI_COLORS[code]) {
+                        result += `<span class="${ANSI_COLORS[code]}">`;
+                        openTags++;
+                    } else if (code === 38 && codes[i + 1] === 5 && codes[i + 2] !== undefined) {
+                        const colorIndex = codes[i + 2];
+                        if (colorIndex < ANSI_256.length) {
+                            result += `<span style="color: ${ANSI_256[colorIndex]}">`;
+                            openTags++;
+                        }
+                        i += 2;
+                    } else if (code === 38 && codes[i + 1] === 2 && codes[i + 4] !== undefined) {
+                        const r = codes[i + 2], g = codes[i + 3], b = codes[i + 4];
+                        result += `<span style="color: rgb(${r},${g},${b})">`;
+                        openTags++;
+                        i += 4;
+                    }
+                }
+            }
+
+            result += escapeHtml(text.substring(lastIndex));
+            while (openTags > 0) { result += '</span>'; openTags--; }
+            return result;
+        }
+
+        function parseMinecraftColors(text) {
+            // First parse ANSI codes
+            text = parseAnsiCodes(text);
+
+            let result = '';
+            let openTags = 0;
+            let i = 0;
+
+            while (i < text.length) {
+                // Skip HTML tags
+                if (text[i] === '<') {
+                    const closeIndex = text.indexOf('>', i);
+                    if (closeIndex !== -1) {
+                        result += text.substring(i, closeIndex + 1);
+                        i = closeIndex + 1;
+                        continue;
+                    }
+                }
+
+                // Check for § or &
+                if ((text[i] === '§' || text[i] === '&') && i + 1 < text.length) {
+                    const code = text[i + 1].toLowerCase();
+
+                    if ('0123456789abcdef'.includes(code)) {
+                        while (openTags > 0) { result += '</span>'; openTags--; }
+                        result += `<span class="mc-${code}">`;
+                        openTags++;
+                        i += 2;
+                        continue;
+                    } else if (code === 'l') {
+                        result += '<span class="mc-bold">';
+                        openTags++;
+                        i += 2;
+                        continue;
+                    } else if (code === 'o') {
+                        result += '<span class="mc-italic">';
+                        openTags++;
+                        i += 2;
+                        continue;
+                    } else if (code === 'n') {
+                        result += '<span class="mc-underline">';
+                        openTags++;
+                        i += 2;
+                        continue;
+                    } else if (code === 'm') {
+                        result += '<span class="mc-strike">';
+                        openTags++;
+                        i += 2;
+                        continue;
+                    } else if (code === 'r') {
+                        while (openTags > 0) { result += '</span>'; openTags--; }
+                        i += 2;
+                        continue;
+                    }
+                }
+
+                result += text[i];
+                i++;
+            }
+
+            while (openTags > 0) { result += '</span>'; openTags--; }
+            return result;
+        }
+
+        function setConnected(connected) {
+            statusDot.classList.toggle('connected', connected);
+            statusText.textContent = connected ? 'Connected' : 'Disconnected';
+            connectBtn.textContent = connected ? 'Disconnect' : 'Connect';
+        }
+
+        function connect() {
+            const host = hostInput.value || 'localhost';
+            const port = portInput.value || '8765';
+
+            ws = new WebSocket(`ws://${host}:${port}`);
+
+            ws.onopen = () => {
+                setConnected(true);
+                log(`Connected to ${host}:${port}`, true);
+            };
+
+            ws.onclose = () => {
+                setConnected(false);
+                log('Connection closed', true);
+                ws = null;
+            };
+
+            ws.onerror = (error) => {
+                log('Connection error', true);
+            };
+
+            ws.onmessage = (event) => {
+                log(event.data);
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        connectBtn.addEventListener('click', () => {
+            if (ws) {
+                disconnect();
+            } else {
+                connect();
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            consoleEl.innerHTML = '';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !ws) {
+                connect();
+            }
+        });
+    </script>
+</body>
+</html>
