@@ -349,7 +349,7 @@
         } else {
             entry.className = 'log-entry';
 
-            const match = message.match(/^\[(\d{2}:\d{2}:\d{2})\] \[(\w+)\] \[([^\]]+)\]: (.*)$/);
+            const match = message.match(/^\[(\d{2}:\d{2}:\d{2})\] \[(\w+)\] \[([^\]]*)\]: (.*)$/);
 
             if (match) {
                 const [, time, level, logger, msg] = match;
@@ -365,8 +365,8 @@
                     entry.classList.add('error');
                 }
 
-                // Check if logger is a package (contains dots)
-                const isPackage = logger.includes('.');
+                // Check if logger is a package (contains dots) or empty
+                const isPackage = logger.includes('.') || logger === '';
 
                 let html = `<span class="log-time${levelClass}">[${time}]</span> `;
                 if (!isPackage) {
@@ -632,7 +632,7 @@
 
             case 'history_complete':
                 receivingHistory = false;
-                log('--- End of history ---', true);
+                // log('--- End of history ---', true);
                 break;
 
             case 'log':
