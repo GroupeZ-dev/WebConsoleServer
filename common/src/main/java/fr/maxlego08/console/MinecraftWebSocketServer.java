@@ -10,17 +10,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 public class MinecraftWebSocketServer extends WebSocketServer {
 
-    private final Logger logger;
+    private final WebConsoleLogger logger;
     private final String password;
     private final int maxLogHistory;
-    private final List<String> logHistory = Collections.synchronizedList(new ArrayList<>());
+    private final List<String> logHistory = Collections.synchronizedList(new ArrayList<String>());
     private final Set<WebSocket> authenticatedClients = ConcurrentHashMap.newKeySet();
 
-    public MinecraftWebSocketServer(String host, int port, String password, int maxLogHistory, Logger logger) {
+    public MinecraftWebSocketServer(String host, int port, String password, int maxLogHistory, WebConsoleLogger logger) {
         super(new InetSocketAddress(host, port));
         this.logger = logger;
         this.password = password;
@@ -82,7 +81,7 @@ public class MinecraftWebSocketServer extends WebSocketServer {
         synchronized (this.logHistory) {
             this.logHistory.add(message);
             while (this.logHistory.size() > this.maxLogHistory) {
-                this.logHistory.removeFirst();
+                this.logHistory.remove(0);
             }
         }
 
@@ -99,20 +98,34 @@ public class MinecraftWebSocketServer extends WebSocketServer {
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             switch (c) {
-                case '\\' -> sb.append("\\\\");
-                case '"' -> sb.append("\\\"");
-                case '\n' -> sb.append("\\n");
-                case '\r' -> sb.append("\\r");
-                case '\t' -> sb.append("\\t");
-                case '\b' -> sb.append("\\b");
-                case '\f' -> sb.append("\\f");
-                default -> {
+                case '\\':
+                    sb.append("\\\\");
+                    break;
+                case '"':
+                    sb.append("\\\"");
+                    break;
+                case '\n':
+                    sb.append("\\n");
+                    break;
+                case '\r':
+                    sb.append("\\r");
+                    break;
+                case '\t':
+                    sb.append("\\t");
+                    break;
+                case '\b':
+                    sb.append("\\b");
+                    break;
+                case '\f':
+                    sb.append("\\f");
+                    break;
+                default:
                     if (c < 0x20) {
                         sb.append(String.format("\\u%04x", (int) c));
                     } else {
                         sb.append(c);
                     }
-                }
+                    break;
             }
         }
         return sb.toString();

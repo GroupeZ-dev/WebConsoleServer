@@ -1,5 +1,7 @@
-package fr.maxlego08.console;
+package fr.maxlego08.console.spigot;
 
+import fr.maxlego08.console.MinecraftWebSocketServer;
+import fr.maxlego08.console.WebConsoleLogger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -37,7 +39,8 @@ public class WebServerPlugin extends JavaPlugin {
     }
 
     private void startWebSocketServer(String host, int port, String password, int maxHistory) {
-        this.webSocketServer = new MinecraftWebSocketServer(host, port, password, maxHistory, getLogger());
+        WebConsoleLogger logger = new BukkitWebConsoleLogger(getLogger());
+        this.webSocketServer = new MinecraftWebSocketServer(host, port, password, maxHistory, logger);
         this.webSocketServer.start();
     }
 
