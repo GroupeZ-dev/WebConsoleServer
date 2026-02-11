@@ -6,6 +6,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
 public class WebServerPlugin extends JavaPlugin {
 
     private static final String DEFAULT_HOST = "0.0.0.0";
@@ -25,6 +30,7 @@ public class WebServerPlugin extends JavaPlugin {
         int maxHistory = getConfig().getInt("max-log-history", DEFAULT_MAX_HISTORY);
 
         startWebSocketServer(host, port, password, maxHistory);
+        loadLogHistory();
         registerLogAppender();
 
         getLogger().info("WebConsoleServer enabled on " + host + ":" + port);
@@ -51,6 +57,24 @@ public class WebServerPlugin extends JavaPlugin {
             } catch (InterruptedException exception) {
                 getLogger().warning("Error stopping WebSocket server: " + exception.getMessage());
             }
+        }
+    }
+
+    private void loadLogHistory() {
+        File logFile = new File("logs", "latest.log");
+        if (!logFile.exists()) {
+            return;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(logFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.isEmpty()) {
+                    this.webSocketServer.addToHistory(line);
+                }
+            }
+        } catch (IOException exception) {
+            getLogger().warning("Failed to load log history: " + exception.getMessage());
         }
     }
 
