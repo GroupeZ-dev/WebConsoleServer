@@ -12,10 +12,12 @@ import fr.maxlego08.console.WebConsoleLogger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 @Plugin(
@@ -56,6 +58,7 @@ public class WebConsoleVelocity {
         int maxHistory = Integer.parseInt(config.getProperty("max-log-history", String.valueOf(DEFAULT_MAX_HISTORY)));
 
         startWebSocketServer(host, port, password, maxHistory);
+        loadLogHistory();
         registerLogHandler();
 
         this.logger.info("WebConsoleServer enabled on {}:{}", host, port);
@@ -82,6 +85,25 @@ public class WebConsoleVelocity {
             } catch (InterruptedException exception) {
                 this.logger.warn("Error stopping WebSocket server: {}", exception.getMessage());
             }
+        }
+    }
+
+    private void loadLogHistory() {
+        Path logFile = Paths.get("logs", "latest.log");
+        if (!Files.exists(logFile)) {
+            return;
+        }
+
+        try (BufferedReader reader = Files.newBufferedReader(logFile)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.isEmpty()) {
+                    this.webSocketServer.addToHistory(line);
+                }
+            }
+            this.logger.info("Loaded {} log entries from latest.log", "history");
+        } catch (IOException exception) {
+            this.logger.warn("Failed to load log history: {}", exception.getMessage());
         }
     }
 

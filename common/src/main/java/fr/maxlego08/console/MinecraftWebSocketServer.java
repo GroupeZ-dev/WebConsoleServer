@@ -134,4 +134,13 @@ public class MinecraftWebSocketServer extends WebSocketServer {
     public boolean hasAuthenticatedClients() {
         return !this.authenticatedClients.isEmpty();
     }
+
+    public void addToHistory(String message) {
+        synchronized (this.logHistory) {
+            this.logHistory.add(message);
+            while (this.logHistory.size() > this.maxLogHistory) {
+                this.logHistory.remove(0);
+            }
+        }
+    }
 }
