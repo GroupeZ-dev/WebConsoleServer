@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":common"))
     compileOnly("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
     annotationProcessor("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
+    compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
 }
 
 tasks.shadowJar {

@@ -9,7 +9,8 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import fr.maxlego08.console.MinecraftWebSocketServer;
 import fr.maxlego08.console.WebConsoleLogger;
-import org.slf4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,14 +32,14 @@ public class WebConsoleVelocity {
     private static final int DEFAULT_MAX_HISTORY = 500;
 
     private final ProxyServer server;
-    private final Logger logger;
+    private final org.slf4j.Logger logger;
     private final Path dataDirectory;
 
     private MinecraftWebSocketServer webSocketServer;
     private VelocityLogHandler logHandler;
 
     @Inject
-    public WebConsoleVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+    public WebConsoleVelocity(ProxyServer server, org.slf4j.Logger logger, @DataDirectory Path dataDirectory) {
         this.server = server;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
@@ -86,14 +87,17 @@ public class WebConsoleVelocity {
 
     private void registerLogHandler() {
         this.logHandler = new VelocityLogHandler(this.webSocketServer);
-        java.util.logging.Logger rootLogger = java.util.logging.Logger.getLogger("");
-        rootLogger.addHandler(this.logHandler);
+        this.logHandler.start();
+
+        Logger rootLogger = (Logger) LogManager.getRootLogger();
+        rootLogger.addAppender(this.logHandler);
     }
 
     private void unregisterLogHandler() {
         if (this.logHandler != null) {
-            java.util.logging.Logger rootLogger = java.util.logging.Logger.getLogger("");
-            rootLogger.removeHandler(this.logHandler);
+            Logger rootLogger = (Logger) LogManager.getRootLogger();
+            rootLogger.removeAppender(this.logHandler);
+            this.logHandler.stop();
         }
     }
 
@@ -120,6 +124,7 @@ public class WebConsoleVelocity {
 
                                 # Password for WebSocket authentication (leave empty for no authentication)
                                 websocket-password=changeme
+
 
                                 # Maximum number of log lines to keep in history
                                 max-log-history=500

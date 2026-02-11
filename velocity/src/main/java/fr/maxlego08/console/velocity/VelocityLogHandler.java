@@ -1,44 +1,39 @@
 package fr.maxlego08.console.velocity;
 
 import fr.maxlego08.console.MinecraftWebSocketServer;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.config.Property;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
 
-public class VelocityLogHandler extends Handler {
+public class VelocityLogHandler extends AbstractAppender {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
 
     private final MinecraftWebSocketServer webSocketServer;
 
     public VelocityLogHandler(MinecraftWebSocketServer webSocketServer) {
+        super("WebConsoleAppender", null, PatternLayout.createDefaultLayout(), true, Property.EMPTY_ARRAY);
         this.webSocketServer = webSocketServer;
     }
 
     @Override
-    public void publish(LogRecord record) {
+    public void append(LogEvent event) {
         if (this.webSocketServer == null) {
             return;
         }
 
-        String time = TIME_FORMATTER.format(Instant.ofEpochMilli(record.getMillis()));
-        String level = record.getLevel().getName();
-        String loggerName = record.getLoggerName();
-        String message = record.getMessage();
+        String time = TIME_FORMATTER.format(Instant.ofEpochMilli(event.getTimeMillis()));
+        String level = event.getLevel().name();
+        String loggerName = event.getLoggerName();
+        String message = event.getMessage().getFormattedMessage();
 
         String formattedMessage = String.format("[%s] [%s] [%s]: %s", time, level, loggerName, message);
 
         this.webSocketServer.broadcastLog(formattedMessage);
-    }
-
-    @Override
-    public void flush() {
-    }
-
-    @Override
-    public void close() throws SecurityException {
     }
 }
