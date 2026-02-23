@@ -96,12 +96,14 @@ public class WebConsoleVelocity {
 
         try (BufferedReader reader = Files.newBufferedReader(logFile)) {
             String line;
+            int count = 0;
             while ((line = reader.readLine()) != null) {
                 if (!line.isEmpty()) {
                     this.webSocketServer.addToHistory(line);
+                    count++;
                 }
             }
-            this.logger.info("Loaded {} log entries from latest.log", "history");
+            this.logger.info("Loaded {} log entries from latest.log", count);
         } catch (IOException exception) {
             this.logger.warn("Failed to load log history: {}", exception.getMessage());
         }
