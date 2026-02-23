@@ -6,12 +6,14 @@ import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.Property;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class ConsoleLogAppender extends AbstractAppender {
 
-    private static final SimpleDateFormat TIME_FORMATTER = new SimpleDateFormat("HH:mm:ss");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private final MinecraftWebSocketServer webSocketServer;
 
@@ -26,7 +28,7 @@ public class ConsoleLogAppender extends AbstractAppender {
             return;
         }
 
-        String time = TIME_FORMATTER.format(new Date(event.getTimeMillis()));
+        String time = TIME_FORMATTER.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(event.getTimeMillis()), ZoneId.systemDefault()));
         String level = event.getLevel().name();
         String loggerName = event.getLoggerName();
         String message = event.getMessage().getFormattedMessage();
